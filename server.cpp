@@ -8,6 +8,10 @@
 #include <sys/socket.h>
 #include <netinet/ip.h>
 
+static void msg(const char *msg) {
+    fprintf(stderr, "%s\n", msg);
+}
+
 static void do_something(int connfd) {
     char rbuf[64] = {};
     ssize_t n = read(connfd, rbuf, sizeof(rbuf) - 1);
@@ -19,6 +23,12 @@ static void do_something(int connfd) {
 
     char wbuf[] = "world";
     write(connfd, wbuf, strlen(wbuf)); // TODO: add error handling 
+}
+
+static void die(const char* msg) {
+    int err = errno;
+    fprintf(stderr, "[%d] %s\n", err, msg);
+    abort();
 }
 
 int main() {
