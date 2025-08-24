@@ -69,7 +69,7 @@ static int32_t one_request(int connfd) {
         return err;
     }
 
-    printf("client says: $.*s\n", len, &rbuf[4]);
+    fprintf(stderr, "client says: %.*s\n", len, &rbuf[4]);
 
     const char reply[] = "world";
     char wbuf[4 + sizeof(reply)];

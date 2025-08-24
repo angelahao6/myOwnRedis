@@ -104,18 +104,31 @@ int main() {
         die("connect");
     }
 
-    // write something
-    char msg[] = "hello";
-    write(fd, msg, strlen(msg));
-
-    // read back from server
-    char rbuf[64] = {};
-    ssize_t n = read(fd, rbuf, sizeof(rbuf) - 1); 
-    if (n < 0) {
-        die("read");
+    int32_t err = query(fd, "hello1");
+    if (err) {
+        goto L_DONE;
     }
-    printf("server says %s\n", rbuf);
 
-    // close connection
-    close(fd);
+    err = query(fd, "hello2");
+    if (err) {
+        goto L_DONE;
+    }
+
+    L_DONE:
+        close(fd);
+        return 0;
+    // // write something
+    // char msg[] = "hello";
+    // write(fd, msg, strlen(msg));
+
+    // // read back from server
+    // char rbuf[64] = {};
+    // ssize_t n = read(fd, rbuf, sizeof(rbuf) - 1); 
+    // if (n < 0) {
+    //     die("read");
+    // }
+    // printf("server says %s\n", rbuf);
+
+    // // close connection
+    // close(fd);
 }
