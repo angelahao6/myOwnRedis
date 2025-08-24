@@ -25,6 +25,10 @@ static int32_t read_full(int fd, char *buf, size_t n) {
     while (n > 0) {
         ssize_t rv = read(fd, buf, n);
         if (rv <= 0) {
+            // if read is interrupted by a signal then retry
+            if (errno == EINTR) {
+                continue;
+            }
             return -1;
         }
         assert((size_t)rv <= n);
