@@ -117,18 +117,4 @@ int main() {
     L_DONE:
         close(fd);
         return 0;
-    // // write something
-    // char msg[] = "hello";
-    // write(fd, msg, strlen(msg));
-
-    // // read back from server
-    // char rbuf[64] = {};
-    // ssize_t n = read(fd, rbuf, sizeof(rbuf) - 1); 
-    // if (n < 0) {
-    //     die("read");
-    // }
-    // printf("server says %s\n", rbuf);
-
-    // // close connection
-    // close(fd);
 }
