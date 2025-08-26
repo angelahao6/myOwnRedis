@@ -108,6 +108,18 @@ static void die(const char *msg)
 
 int main()
 {
+    // while running:
+    // want_read = [...]           # socket fds
+    // want_write = [...]          # socket fds
+    // can_read, can_write = wait_for_readiness(want_read, want_write) # blocks!
+    // for fd in can_read:
+    //     data = read_nb(fd)      # non-blocking, only consume from the buffer
+    //     handle_data(fd, data)   # application logic without IO
+    // for fd in can_write:
+    //     data = pending_data(fd) # produced by the application
+    //     n = write_nb(fd, data)  # non-blocking, only append to the buffer
+    //     data_written(fd, n)     # n <= len(data), limited by the available space
+
     // obtain socket handle
     int fd = socket(AF_INET, SOCK_STREAM, 0);
 
