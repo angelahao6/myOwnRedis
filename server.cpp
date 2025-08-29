@@ -145,29 +145,39 @@ static void fd_set_nb(int fd)
     fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
 }
 
-// todo: finish the rest of this function
 static void handle_read(Conn *conn)
 {
-    // Do a nonblocking read
+    // perform a nonblocking read
     uint8_t buf[64 * 1024];
     ssize_t rv = read(conn->fd, buf, sizeof(buf));
+    if (rv < 0 && errno == EAGAIN)
+    {
+        return;
+    }
     if (rv <= 0)
     {
+        msg(rv == 0 ? "client closed" : "read() error");
         conn->want_close = true;
         return;
     }
     // add data to the incoming buffer
     buf_append(conn->incoming, buf, (size_t)rv);
-    // 3. Try to parse the accumulated buffer.
-    // 4. Process the parsed message.
-    // 5. Remove the message from `Conn::incoming`.
-    try_one_request(conn);
-    // ...
+    // try to parse the accumulated buffer and Remove the message from `Conn::incoming`.
+    // need to call in a loop to handle pipelining where we can handle multiple requests
+    while (try_one_request(conn))
+    {
+    }
     if (conn->outgoing.size() > 0)
-    { // has a response
+    {
         conn->want_read = false;
         conn->want_write = true;
-    } // else: want read
+        return handle_write(conn);
+    }
+    else
+    {
+        conn->want_read = true;
+        conn->want_write = false;
+    }
 }
 
 // todo: finish the rest of this function
