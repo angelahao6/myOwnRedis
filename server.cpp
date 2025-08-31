@@ -251,6 +251,10 @@ int main()
 {
     // obtain socket handle
     int fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd < 0)
+    {
+        die("socket()");
+    }
 
     // set socket options
     int val = 1; // set SO_REUSEADDR to 1 to bind immediately after port closes
@@ -266,6 +270,9 @@ int main()
     {
         die("bind()");
     }
+
+    // set the fd to nonblocking mode
+    fd_set_nb(fd);
 
     // listen -- this is where socket is actually created
     rv = listen(fd, SOMAXCONN); // SOMAXCONN = size of queue (is 4096 on linux)
@@ -332,13 +339,20 @@ int main()
         for (size_t i = 1; i < poll_args.size(); ++i)
         {
             uint32_t ready = poll_args[i].revents;
+            if (ready == 0)
+            {
+                continue;
+            }
+
             Conn *conn = fd2conn[poll_args[i].fd];
             if (ready & POLLIN)
             {
+                assert(conn->want_read);
                 handle_read(conn);
             }
             if (ready & POLLOUT)
             {
+                assert(conn->want_write);
                 handle_write(conn);
             }
             // close the connections
@@ -349,25 +363,6 @@ int main()
                 delete conn;
             }
         }
-
-        struct sockaddr_in client_addr = {};
-        socklen_t addrlen = sizeof(client_addr);
-        int connfd = accept(fd, (struct sockaddr *)&client_addr, &addrlen);
-        if (connfd < 0)
-        {
-            continue; // error
-        }
-
-        while (true)
-        {
-            int32_t err = one_request(connfd);
-            if (err)
-            {
-                break;
-            }
-        }
-        close(connfd);
     }
-
     return 0;
 }
