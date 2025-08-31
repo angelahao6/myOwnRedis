@@ -180,7 +180,6 @@ static void handle_read(Conn *conn)
     }
 }
 
-// todo: finish the rest of this function
 // process 1 request if there is enough data
 static bool try_one_request(Conn *conn)
 {
@@ -204,7 +203,8 @@ static bool try_one_request(Conn *conn)
     }
     const uint8_t *request = &conn->incoming[4];
     // 4. Process the parsed message.
-    // ...
+    printf("client says: len:%d data:%.*s\n",
+           len, len < 100 ? len : 100, request);
     // generate the response (echo)
     buf_append(conn->outgoing, (const uint8_t *)&len, 4);
     buf_append(conn->outgoing, request, len);
