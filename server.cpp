@@ -223,7 +223,6 @@ static void buf_consume(std::vector<uint8_t> &buf, size_t n)
     buf.erase(buf.begin(), buf.begin() + n);
 }
 
-// todo: finish the rest of this function
 static void handle_write(Conn *conn)
 {
     assert(conn->outgoing.size() > 0);
@@ -235,12 +234,17 @@ static void handle_write(Conn *conn)
     }
     // remove written data from `outgoing`
     buf_consume(conn->outgoing, (size_t)rv);
-    // ...
+
     if (conn->outgoing.size() == 0)
     { // all data written
         conn->want_read = true;
         conn->want_write = false;
-    } // else: want write
+    }
+    else
+    {
+        conn->want_read = false;
+        conn->want_write = true;
+    }
 }
 
 int main()
