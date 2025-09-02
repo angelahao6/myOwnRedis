@@ -12,7 +12,7 @@
 #include <fcntl.h>
 #include <poll.h>
 
-const size_t k_max_msg = 4096;
+const size_t k_max_msg = 32 << 20;
 
 struct Conn
 {
