@@ -115,6 +115,11 @@ static void handle_write(Conn *conn)
 {
     assert(conn->outgoing.size() > 0);
     ssize_t rv = write(conn->fd, conn->outgoing.data(), conn->outgoing.size());
+    // Check if the socket is ready for writing
+    if (rv < 0 && errno == EAGAIN)
+    {
+        return;
+    }
     if (rv < 0)
     {
         conn->want_close = true; // error handling
