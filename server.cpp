@@ -34,6 +34,47 @@ struct Buffer
     uint8_t *data_end;
 };
 
+static void init_buf(Buffer *buf, size_t n)
+{
+    buf->buffer_begin = (uint8_t *)malloc(n);
+    buf->buffer_end = buf->buffer_begin + n;
+    buf->data_begin = buf->buffer_begin;
+    buf->data_end = buf->buffer_begin;
+}
+
+static void msg(const char *msg)
+{
+    fprintf(stderr, "%s\n", msg);
+}
+
+static void die(const char *msg)
+{
+    int err = errno;
+    fprintf(stderr, "[%d] %s\n", err, msg);
+    abort();
+}
+
+static void fd_set_nb(int fd)
+{
+    fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
+}
+
+static void buf_append(std::vector<uint8_t> &buf, const uint8_t *data, size_t len)
+{
+    buf.insert(buf.end(), data, data + len);
+}
+
+static void buf_consume(std::vector<uint8_t> &buf, size_t n)
+{
+    buf.erase(buf.begin(), buf.begin() + n);
+}
+
+// todo: update buf_consume
+// static void buf_consume(struct Buffer *buf, size_t n)
+// {
+//     buf->data_begin += n;
+// }
+
 // process 1 request if there is enough data
 static bool try_one_request(Conn *conn)
 {
@@ -84,6 +125,35 @@ static Conn *handle_accept(int fd)
     return conn;
 }
 
+static void handle_write(Conn *conn)
+{
+    assert(conn->outgoing.size() > 0);
+    ssize_t rv = write(conn->fd, conn->outgoing.data(), conn->outgoing.size());
+    // Check if the socket is ready for writing
+    if (rv < 0 && errno == EAGAIN)
+    {
+        return;
+    }
+    if (rv < 0)
+    {
+        conn->want_close = true; // error handling
+        return;
+    }
+    // remove written data from `outgoing`
+    buf_consume(conn->outgoing, (size_t)rv);
+
+    if (conn->outgoing.size() == 0)
+    { // all data written
+        conn->want_read = true;
+        conn->want_write = false;
+    }
+    else
+    {
+        conn->want_read = false;
+        conn->want_write = true;
+    }
+}
+
 static void handle_read(Conn *conn)
 {
     // perform a nonblocking read
@@ -117,62 +187,6 @@ static void handle_read(Conn *conn)
         conn->want_read = true;
         conn->want_write = false;
     }
-}
-
-static void handle_write(Conn *conn)
-{
-    assert(conn->outgoing.size() > 0);
-    ssize_t rv = write(conn->fd, conn->outgoing.data(), conn->outgoing.size());
-    // Check if the socket is ready for writing
-    if (rv < 0 && errno == EAGAIN)
-    {
-        return;
-    }
-    if (rv < 0)
-    {
-        conn->want_close = true; // error handling
-        return;
-    }
-    // remove written data from `outgoing`
-    buf_consume(conn->outgoing, (size_t)rv);
-
-    if (conn->outgoing.size() == 0)
-    { // all data written
-        conn->want_read = true;
-        conn->want_write = false;
-    }
-    else
-    {
-        conn->want_read = false;
-        conn->want_write = true;
-    }
-}
-
-static void msg(const char *msg)
-{
-    fprintf(stderr, "%s\n", msg);
-}
-
-static void die(const char *msg)
-{
-    int err = errno;
-    fprintf(stderr, "[%d] %s\n", err, msg);
-    abort();
-}
-
-static void fd_set_nb(int fd)
-{
-    fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
-}
-
-static void buf_append(std::vector<uint8_t> &buf, const uint8_t *data, size_t len)
-{
-    buf.insert(buf.end(), data, data + len);
-}
-
-static void buf_consume(std::vector<uint8_t> &buf, size_t n)
-{
-    buf.erase(buf.begin(), buf.begin() + n);
 }
 
 int main()
