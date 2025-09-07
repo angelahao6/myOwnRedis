@@ -47,6 +47,12 @@ static void free_buf(Buffer *buf)
     free(buf->buffer_begin);
     buf->buffer_begin = buf->buffer_end = buf->data_begin = buf->data_end = NULL;
 }
+
+static size_t buf_size(Buffer *buf)
+{
+    return buf->data_end - buf->data_begin;
+}
+
 static void msg(const char *msg)
 {
     fprintf(stderr, "%s\n", msg);
