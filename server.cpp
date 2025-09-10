@@ -53,6 +53,11 @@ static size_t buf_size(Buffer *buf)
     return buf->data_end - buf->data_begin;
 }
 
+static size_t buf_space(Buffer *buf)
+{
+    return buf->buffer_end - buf->data_end;
+}
+
 static void msg(const char *msg)
 {
     fprintf(stderr, "%s\n", msg);
