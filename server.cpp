@@ -79,6 +79,7 @@ static void fd_set_nb(int fd)
 
 static void buf_append(std::vector<uint8_t> &buf, const uint8_t *data, size_t len)
 {
+    // todo: update buf_append based on the new Buffer struct and helper functions
     buf.insert(buf.end(), data, data + len);
 }
 
