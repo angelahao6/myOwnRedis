@@ -77,10 +77,36 @@ static void fd_set_nb(int fd)
     fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
 }
 
-static void buf_append(std::vector<uint8_t> &buf, const uint8_t *data, size_t len)
+static void buf_append(Buffer *buf, const uint8_t *data, size_t len)
 {
-    // todo: update buf_append based on the new Buffer struct and helper functions
-    buf.insert(buf.end(), data, data + len);
+    if (buf_space(buf) < len)
+    {
+        size_t used = buf_size(buf);
+        memmove(buf->buffer_begin, buf->data_begin, used);
+        buf->data_begin = buf->buffer_begin;
+        buf->data_end = buf->data_begin + used;
+
+        if (buf_space(buf) < len)
+        {
+            size_t old_size = buf->buffer_end - buf->buffer_begin;
+            size_t new_size = old_size * 2;
+            if (new_size < len + used)
+            {
+                // then need to allocate more space
+                new_size = len + used;
+                size_t new_used = buf_size(buf);
+                uint8_t *new_buf = (uint8_t *)malloc(new_size);
+                memcpy(new_buf, buf->data_begin, new_used);
+                free(buf->buffer_begin);
+                buf->buffer_begin = new_buf;
+                buf->buffer_end = new_buf + new_size;
+                buf->data_begin = new_buf;
+                buf->data_end = new_buf + new_used;
+            }
+        }
+    }
+    memcpy(buf->data_end, data, len);
+    buf->data_end += len;
 }
 
 static void buf_consume(std::vector<uint8_t> &buf, size_t n)
