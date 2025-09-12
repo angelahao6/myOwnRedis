@@ -48,11 +48,13 @@ static void free_buf(Buffer *buf)
     buf->buffer_begin = buf->buffer_end = buf->data_begin = buf->data_end = NULL;
 }
 
+// return the size of the data in the buffer
 static size_t buf_size(Buffer *buf)
 {
     return buf->data_end - buf->data_begin;
 }
 
+// return the writable space
 static size_t buf_space(Buffer *buf)
 {
     return buf->buffer_end - buf->data_end;
