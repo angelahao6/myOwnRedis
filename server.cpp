@@ -114,11 +114,14 @@ static void buf_consume(std::vector<uint8_t> &buf, size_t n)
     buf.erase(buf.begin(), buf.begin() + n);
 }
 
-// todo: update buf_consume
-// static void buf_consume(struct Buffer *buf, size_t n)
-// {
-//     buf->data_begin += n;
-// }
+static void buf_consume(struct Buffer *buf, size_t n)
+{
+    buf->data_begin += n;
+    if (buf->data_begin == buf->data_end)
+    {
+        buf->data_begin = buf->data_end = buf->buffer_begin;
+    }
+}
 
 // process 1 request if there is enough data
 static bool try_one_request(Conn *conn)
