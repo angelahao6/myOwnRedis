@@ -14,6 +14,7 @@
 
 const size_t k_max_msg = 32 << 20;
 
+// todo: update the Conn struct with the new Buffer struct
 struct Conn
 {
     int fd = -1;
