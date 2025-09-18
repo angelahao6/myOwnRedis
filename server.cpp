@@ -156,6 +156,7 @@ static bool try_one_request(Conn *conn)
     return true; // success
 }
 
+// todo: update using new Conn
 static Conn *handle_accept(int fd)
 {
     struct sockaddr_in client_addr = {};
