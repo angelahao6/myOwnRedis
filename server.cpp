@@ -171,6 +171,7 @@ static Conn *handle_accept(int fd)
     Conn *conn = new Conn();
     conn->fd = connfd;
     conn->want_read = true;
+    init_buf(&conn->incoming, 4096);
     return conn;
 }
 
