@@ -221,7 +221,8 @@ static void handle_read(Conn *conn)
         return;
     }
     // add data to the incoming buffer
-    buf_append(conn->incoming, buf, (size_t)rv);
+    buf_append(&conn->incoming, buf, (size_t)rv);
+
     // try to parse the accumulated buffer and Remove the message from `Conn::incoming`.
     // need to call in a loop to handle pipelining where we can handle multiple requests
     while (try_one_request(conn))
